@@ -91,7 +91,7 @@ export default {
             .database()
             .ref('situation/' + self.userusername + ',' + self.appnamefor)
             .set({
-              irai: self.userusername + ',' + self.appnamefor
+              irai: self.userName + ',' + self.appName
             })
           if (snapshot.val() == null) {
             firebase

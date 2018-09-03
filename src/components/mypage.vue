@@ -126,7 +126,10 @@ export default {
       var self = this
       console.log('ContractStatus/' + self.displayName + ',' + userapp)
       console.log('ContractStatus/' + partnerName + ',' + partnerAppName)
-
+      console.log(
+        'situatinoは、、、、、、、、、、、',
+        partnerName + ',' + partnerAppName
+      )
       firebase
         .database()
         .ref('/situation/' + partnerName + ',' + partnerAppName)
