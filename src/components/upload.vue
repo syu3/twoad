@@ -2,7 +2,7 @@
 <template>
   <div id="app">
     <md-toolbar class="md-raised md-primary" md-elevation="1">
-      <a class="md-title" style="cursor:pointer; text-decoration: none; flex: 1" href="/">Twoad</a>
+      <a class="md-title" style="cursor:pointer; text-decoration: none; flex: 1" href="#/matching">Twoad</a>
 
       <h3 class="md-title" style="flex: 1"></h3>
       <!-- <md-button style="position:absolute;  top :10px; z-index: 2;" href="#/upload">アップロード</md-button>
@@ -12,6 +12,10 @@
       <input type="image" style="width:3%;" onClick="location.href='#/mypage'" src="https://firebasestorage.googleapis.com/v0/b/twoad-proj.appspot.com/o/user1.png?alt=media&token=a03f16d6-718a-4a90-a376-5ad6d1b2679c">
 
     </md-toolbar>
+    <md-dialog-alert
+  :md-active.sync="double"
+  md-content="そのアプリは登録されています"
+  md-confirm-text="はい" />
     <!-- <md-toolbar style="width:500px; position:absolute; right: 20px;"> -->
       <!-- <md-button class="md-raised md-primary" style="position:absolute; right: 0px; top :10px; z-index: 2;" href="#/upload">アップロード</md-button> -->
     <!-- </md-toolbar> -->
@@ -19,6 +23,7 @@
       <md-card class="uploadCard md-layout-item md-size-50 md-small-size-100">
        <md-card-header>
          <div class="md-title">アップロード</div>
+         全ての項目を入力してください
        </md-card-header>
        <!-- <md-button class="md-raised md-primary">Primary</md-button> -->
        <md-card-content>
@@ -81,11 +86,10 @@
                      </md-field>
                    </div>
                  </div>
-                 <md-field :class="getValidationClass('email')">
-                   <label for="email">メールアドレス</label>
-                   <md-input type="email" name="email" id="email" autocomplete="email" v-model="form.email" :disabled="sending" />
-                   <span class="md-error" v-if="!$v.form.email.required">メールアドレスを入力してください</span>
-                   <span class="md-error" v-else-if="!$v.form.email.email">正しくメールアドレスを入力してください</span>
+                 <md-field :class="getValidationClass('appurl')">
+                   <label for="appurl">アプリのURL ＊広告が押された時の移動先</label>
+                   <md-input  name="appurl" id="email" v-model="form.appurl" :disabled="sending" />
+                   <span class="md-error" v-if="!$v.form.appurl.required">URLを入力してください</span>
                  </md-field>
                  <md-field>
                   <label>広告用の画像</label>
@@ -118,7 +122,7 @@
 <script>
 /* global firebase */
 import { validationMixin } from 'vuelidate'
-import { required, email, minLength } from 'vuelidate/lib/validators'
+import { required, minLength } from 'vuelidate/lib/validators'
 var file
 var uid
 
@@ -134,31 +138,48 @@ export default {
         email: null,
         category: null,
         information: null,
-        image: null
+        image: null,
+        appurl: null
       },
       userSaved: false,
       sending: false,
       lastUser: null,
       date: null,
-      userusername: null
+      userusername: null,
+      userusermail: null,
+      double: false,
+      enddate: null
     }
   },
 
   methods: {
     imageFunc: function(e) {
       file = e.target.files[0]
-      console.log(e.target.files[0].width)
     },
     upload: function() {
-      var storageRef = firebase
-        .storage()
-        .ref(this.userusername + this.form.appName + '/adimage')
-      storageRef.put(file)
-      this.writeUserData()
+      var self = this
+      firebase
+        .database()
+        .ref('userInformation/' + self.userusername + ',' + self.form.appName)
+        .once('value')
+        .then(function(snapshot) {
+          if (snapshot.val() === null) {
+            var storageRef = firebase
+              .storage()
+              .ref(self.userusername + self.form.appName + '/adimage')
+            storageRef.put(file)
+            self.writeUserData()
+          } else {
+            self.double = true
+            this.sending = true
+          }
+        })
     },
 
     writeUserData: function() {
       var self = this
+      self.enddate = new Date()
+      console.log(self.enddate)
       firebase
         .database()
         .ref('/UID/' + uid)
@@ -187,7 +208,24 @@ export default {
               })
           }
         })
-      // var self = this
+
+      if (this.date === '1週間') {
+        self.enddate.setDate(self.enddate.getDate() + 7)
+      } else if (this.date === '2週間') {
+        self.enddate.setDate(self.enddate.getDate() + 14)
+      } else if (this.date === '3週間') {
+        self.enddate.setDate(self.enddate.getDate() + 21)
+      } else if (this.date === '1ヶ月') {
+        self.enddate.setMonth(self.enddate.getMonth() + 1)
+      } else if (this.date === '3ヶ月') {
+        self.enddate.setMonth(self.enddate.getMonth() + 3)
+      } else if (this.date === '6ヶ月') {
+        self.enddate.setMonth(self.enddate.getMonth() + 6)
+      } else if (this.date === '1年間') {
+        self.enddate.setFullYear(self.enddate.getFullYear() + 1)
+      }
+      console.log(toString.call(String(self.enddate)))
+      self.enddate = String(self.enddate)
       firebase
         .database()
         .ref('userInformation/' + this.userusername + ',' + this.form.appName)
@@ -196,8 +234,10 @@ export default {
           userName: this.userusername,
           category: this.form.category,
           information: this.form.information,
-          mail: this.form.email,
+          mail: this.userusermail,
+          appurl: this.form.appurl,
           date: this.date,
+          enddate: this.enddate,
           picture: ''
         })
     },
@@ -234,10 +274,10 @@ export default {
         required,
         minLength: minLength(3)
       },
-      email: {
-        required,
-        email
+      appurl: {
+        required
       },
+
       category: {
         required
       },
@@ -252,6 +292,7 @@ export default {
     var self = this
     firebase.auth().onAuthStateChanged(function(user) {
       self.userusername = user.displayName
+      self.userusermail = user.email
       if (user) {
         uid = user.uid
       } else {

@@ -9,6 +9,7 @@ import aaa from '@/components/aaa'
 import signup from '@/components/signup'
 import login from '@/components/login'
 import mypage from '@/components/mypage'
+import home from '@/components/home'
 
 Vue.use(VueMaterial)
 
@@ -17,7 +18,7 @@ Vue.use(Router)
 export default new Router({
   routes: [
     {
-      path: '/',
+      path: '/matching',
       name: 'matching',
       component: matching
     },
@@ -45,6 +46,11 @@ export default new Router({
       path: '/login',
       name: 'login',
       component: login
+    },
+    {
+      path: '/',
+      name: 'home',
+      component: home
     }
   ]
 })

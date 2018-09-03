@@ -1,5 +1,14 @@
 <template>
-  <div id="app">
+  <div id="app" style="width:100%;">
+    <!-- <md-toolbar class="md-raised md-primary" md-elevation="1"> -->
+
+      <!-- <md-button style="position:absolute;  top :10px; z-index: 2;" href="#/upload">アップロード</md-button>
+      <md-button style="position:relative; right: 0px; top :10px; z-index: 2;" href="#/upload">サインイン</md-button> -->
+      <!-- <md-button href="#/upload">アップロード</md-button> -->
+      <!-- <md-button href="#/signup">サインイン</md-button> -->
+      <!-- <input type="image" style="width:3%;" onClick="location.href='#/mypage'" src="https://firebasestorage.googleapis.com/v0/b/twoad-proj.appspot.com/o/user1.png?alt=media&token=a03f16d6-718a-4a90-a376-5ad6d1b2679c"> -->
+
+    <!-- </md-toolbar> -->
     <!-- <img src="./assets/logo.png"> -->
     <!-- <md-toolbar style="margin-top:0%;"  class="">  -->
       <!-- <md-toolbar class="md-toolbar md-raised md-primary apptoolbar" style="margin-top:0%;" md-elevation="1">

@@ -8,7 +8,7 @@
     <md-button href="#/signup">サインイン</md-button>
   </md-toolbar> -->
   <md-toolbar class="md-raised md-primary" md-elevation="1">
-    <a class="md-title" style="cursor:pointer; text-decoration: none; flex: 1" href="/">Twoad</a>
+    <a class="md-title" style="cursor:pointer; text-decoration: none; flex: 1" href="#/matching">Twoad</a>
 
     <h3 class="md-title" style="flex: 1"></h3>
         <md-button href="#/login">ログイン</md-button>
@@ -91,7 +91,7 @@ export default {
                 displayName: self.form.userName
               })
               .then(function() {
-                location.href = '#/'
+                location.href = '#/matching'
               })
           }
           setTimeout(countup, 1500)

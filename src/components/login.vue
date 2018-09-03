@@ -1,7 +1,7 @@
 <template lang="html">
   <div id="app">
   <md-toolbar class="md-raised md-primary" md-elevation="1">
-    <a class="md-title" style="cursor:pointer; text-decoration: none; flex: 1" href="/">Twoad</a>
+    <a class="md-title" style="cursor:pointer; text-decoration: none; flex: 1" href="#/matching">Twoad</a>
 
     <h3 class="md-title" style="flex: 1"></h3>
         <!-- <md-button href="#/login">ログイン</md-button> -->
@@ -69,7 +69,7 @@ export default {
         .auth()
         .signInWithEmailAndPassword(this.form.email, this.form.password)
         .then(result => {
-          location.href = '#/'
+          location.href = '#/matching'
         })
         .catch(function(error) {
           self.first = true

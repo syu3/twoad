@@ -1,7 +1,7 @@
 <template lang="html">
   <div id="app">
     <md-toolbar class="md-raised md-primary" md-elevation="1">
-      <a class="md-title" style="cursor:pointer; text-decoration: none; flex: 1" href="/">Twoad</a>
+      <a class="md-title" style="cursor:pointer; text-decoration: none; flex: 1" href="#/matching">Twoad</a>
       <h3 class="md-title" style="flex: 1"></h3>
       <md-button href="#/upload">アップロード</md-button>
         <input type="image" style="width:3%;" onClick="location.href='#/mypage'" src="https://firebasestorage.googleapis.com/v0/b/twoad-proj.appspot.com/o/user1.png?alt=media&token=a03f16d6-718a-4a90-a376-5ad6d1b2679c">
@@ -44,23 +44,58 @@
             {{ contractStatus.information }}
             {{ contractStatus.userName }}
             {{ contractStatus.category }}
-            <h2>このコードを<font color='red'>{{iraiuke}}</font>のviewDidLoadに貼り付けてください</h2>
+            <p>契約期間：<font color="red">{{ contractStatus.enddate }}</font>まで</p>
+            <h2>このコードを<font color='red'>{{iraiuke}}</font>に貼り付けてください</h2>
+            変数宣言
+            <pre class="CodeHighlighter"><code class="html">
+var ad = UIButton()
+var close = UIButton()
+            </code></pre>
+            viewDidLoadに貼り付けてください
               <pre class="CodeHighlighter"><code class="html">
- let url = NSURL(string: "{{contractStatus.picture}}");<br>
- let imageData = NSData(contentsOf : url! as URL)<br>
- var myImageView = UIImageView()<br>
- myImageView.image = UIImage(data:imageData! as Data)<br>
- let posX: CGFloat = self.view.bounds.height<br>
- let imageView = UIImageView(frame: CGRect(x: 0, y: posX-100, width: 450, height: 100))<br>
- imageView.image = UIImage(data:imageData! as Data)<br>
- self.view.addSubview(imageView)
+ let url = NSURL(string: "{{contractStatus.picture}}");
+ let imageData = NSData(contentsOf : url! as URL)
+ ad.setImage(UIImage(data:imageData! as Data), for: .normal)
+ ad.frame = CGRect(x:0,y:0,width:self.view.bounds.width,height:self.view.bounds.height)
+ ad.addTarget(self, action: #selector(ViewController.openApp(sender: )), for: .touchUpInside);
+ self.view.addSubview(ad)
+ close.setTitle("×", for: .normal)
+ close.setTitleColor(UIColor.blue, for: .normal)
+ close.frame = CGRect(x: 0,y: 0,width: 30,height: 30)
+ close.backgroundColor = UIColor.white
+ close.layer.cornerRadius = 15
+ close.layer.position = CGPoint(x: view.frame.width - 30, y: 50)
+ close.addTarget(self, action: #selector(ViewController.twoad(sender: )), for: .touchUpInside);
+ view.addSubview(close)
+ close.isHidden = true
+ ad.isHidden = true
+
+                </code></pre>
+                関数
+                <pre class="CodeHighlighter"><code class="html">
+@objc func openApp(sender: Any){
+    let url = URL(string: "{{contractStatus.appurl}}")!
+    if UIApplication.shared.canOpenURL(url) {
+        UIApplication.shared.open(url)
+    }
+}
+@objc func twoad(sender:Any){
+    if ad.isHidden == true{
+        ad.isHidden = false
+        close.isHidden = false
+    }else{
+        ad.isHidden = true
+        close.isHidden = true
+    }
+}
+                </code></pre>
+                広告を表示させるコード
+                <pre class="CodeHighlighter"><code class="html">
+                  twoad(sender:self)
                 </code></pre>
 
             <img :src='contractStatus.picture' alt="">
-            <!-- <md-button class="md-dense md-raised md-primary">{{ informations.category }}</md-button> -->
-            <!-- <md-card-actions>
-              <md-button class="md-raised md-primary">この広告を貼る</md-button>
-            </md-card-actions> -->
+
           </md-card-content>
         </md-card>
       </md-card-content>
@@ -89,27 +124,47 @@ export default {
   methods: {
     koushouseiritu: function(partnerName, partnerAppName) {
       var self = this
-      firebase
-        .database()
-        .ref('ContractStatus/' + self.displayName + ',' + userapp)
-        .set({
-          partner: partnerName + ',' + partnerAppName
-        })
-      firebase
-        .database()
-        .ref('ContractStatus/' + partnerName + ',' + partnerAppName)
-        .set({
-          partner: self.displayName + ',' + userapp
-        })
+      console.log('ContractStatus/' + self.displayName + ',' + userapp)
+      console.log('ContractStatus/' + partnerName + ',' + partnerAppName)
 
       firebase
         .database()
-        .ref('situation/' + self.displayName + ',' + userapp)
-        .remove()
-      var countup = function() {
-        location.href = '#/mypage'
-      }
-      setTimeout(countup, 1000)
+        .ref('/situation/' + partnerName + ',' + partnerAppName)
+        .once('value')
+        .then(function(snapshot) {
+          console.log(snapshot.val())
+          if (snapshot.val() != null) {
+            firebase
+              .database()
+              .ref('ContractStatus/' + snapshot.val().irai)
+              .set({
+                partner: partnerName + ',' + partnerAppName
+              })
+            firebase
+              .database()
+              .ref('ContractStatus/' + partnerName + ',' + partnerAppName)
+              .set({
+                partner: snapshot.val().irai
+              })
+
+            firebase
+              .database()
+              .ref('situation/' + self.displayName + ',' + userapp)
+              .remove()
+            var countup = function() {
+              location.href = '#/mypage'
+            }
+            setTimeout(countup, 3000)
+            firebase
+              .database()
+              .ref('situation/' + partnerName + ',' + partnerAppName)
+              .set({})
+            firebase
+              .database()
+              .ref('situation/' + snapshot.val().irai)
+              .set({})
+          }
+        })
     },
     iraiFunc: function(userappname) {
       var self = this
@@ -119,7 +174,6 @@ export default {
         .ref('situation/' + self.displayName + ',' + userappname)
         .once('value')
         .then(function(snapshot) {
-          console.log('faw', snapshot.val())
           if (snapshot.val() != null) {
             for (var i = 0; i < snapshot.val().irai.split('|').length; i++) {
               // self.numArray.push(i)
@@ -137,6 +191,7 @@ export default {
     },
     contractStatusFunc: function(userappname) {
       var self = this
+
       firebase
         .database()
         .ref('ContractStatus/' + self.displayName + ',' + userappname)
@@ -144,17 +199,41 @@ export default {
         .then(function(snapshot) {
           if (snapshot.val() != null) {
             for (var i = 0; i < snapshot.val().partner.split('|').length; i++) {
-              console.log(snapshot.val().partner.split('|')[i])
-              // self.numArray.push(i)
               firebase
                 .database()
                 .ref('/userInformation/' + snapshot.val().partner.split('|')[i])
                 .once('value')
                 .then(function(snapshot) {
-                  console.log(snapshot.val())
-                  console.log(self.displayName + ',' + userappname)
-                  self.iraiuke = userappname
-                  self.contractStatusArray.push(snapshot.val())
+                  if (snapshot.val() != null) {
+                    console.log(snapshot.val())
+                    console.log(self.displayName + ',' + userappname)
+
+                    self.iraiuke = userappname
+                    self.contractStatusArray.push(snapshot.val())
+
+                    // // イベントの開始、終了設定
+                    // var startday = new Date('2013/07/07 00:00:00')
+                    // var endday = snapshot.val().enddate
+
+                    var endday = new Date(snapshot.val().enddate)
+                    var today = new Date()
+                    if (today < endday) {
+                      console.log('期間内')
+                      // 期間内
+                    } else {
+                      console.log('期間外')
+                      firebase
+                        .database()
+                        .ref(
+                          '/ContractStatus/' +
+                            snapshot.val().userName +
+                            ',' +
+                            snapshot.val().appName
+                        )
+                        .remove()
+                      // 期間外
+                    }
+                  }
                 })
             }
           }
@@ -207,17 +286,23 @@ export default {
   width:50%;
 }
 pre.CodeHighlighter {
-  overflow-wrap:break-word;
+  /* overflow-wrap:break-word;
     white-space: pre-wrap ;
     font-size: 0.9rem;
     line-height: 100%;
-    font-weight: 400;
+    font-weight: 400; */
     border-left: solid 1px #d3d6db;
     border-right: solid 1px #d3d6db;
     border-top: solid 1px #d3d6db;
     border-bottom: solid 1px #d3d6db;
     background-color: #f9f9f9;
-    margin-top: 16px;
-    margin-bottom: 16px;
+    /* margin-top: 16px;
+    margin-bottom: 16px; */
+    max-width: 80em;
+    overflow: auto;
+    max-height: 25em;
   }
+  pre {
+
+}
 </style>

@@ -1,11 +1,11 @@
 /* global firebase */
 <template>
-  <div id="app">
+  <div id="app" style="width:100%;">
 
     <md-toolbar class="md-raised md-primary matchingtoolbar" md-elevation="1">
-      <a class="md-title" style="cursor:pointer; text-decoration: none; flex: 1" href="/">Twoad</a>
-
-      <h3 class="md-title" style="flex: 1"></h3>
+      <a class="md-title" style="cursor:pointer; text-decoration: none; flex: 1" href="#/matching">Twoad</a>
+      <!-- <h1>マッチング画面</h1> -->
+      <h1 style="flex: 0.8;"></h1>
       <!-- <md-button style="position:absolute;  top :10px; z-index: 2;" href="#/upload">アップロード</md-button>
       <md-button style="position:relative; right: 0px; top :10px; z-index: 2;" href="#/upload">サインイン</md-button> -->
       <md-button href="#/upload">アップロード</md-button>
@@ -15,6 +15,9 @@
       <!-- </input> -->
 
     </md-toolbar>
+    <div style="width:100%;">
+    <p style="position:absolute; top:10%; color:#999; text-align: center; width:100%;" class="md-title">マッチング画面</p>
+    </div>
           <md-dialog  ref="appDialog" class="appDialog" :md-active.sync="appDialogtrue" md-confirm-text="Agree" md-cancel-text="Disagree" @md-cancel="matchingCancel" @md-confirm="matchingOK">
             <p class="md-title">どのアプリにこの広告を貼りますか？</p>
             <md-dialog-actions>
@@ -27,6 +30,7 @@
       @md-confirm="matchingOK">
 
     </md-dialog-confirm>
+
     <md-card v-for="informations in informationArray" v-bind:key="informations.id">
       <md-card-content>
         <p class="md-title">{{ informations.appName }}</p>
@@ -46,6 +50,7 @@
 </template>
 
 <script>
+var appname = []
 /* global firebase */
 export default {
   name: 'matching',
@@ -82,6 +87,12 @@ export default {
         .ref('situation/' + this.userName + ',' + this.appName)
         .once('value')
         .then(function(snapshot) {
+          firebase
+            .database()
+            .ref('situation/' + self.userusername + ',' + self.appnamefor)
+            .set({
+              irai: self.userusername + ',' + self.appnamefor
+            })
           if (snapshot.val() == null) {
             firebase
               .database()
@@ -174,11 +185,25 @@ export default {
 
       this.confirmationDialogtrue = true
     },
+    doubleCheck: function(i) {
+      var self = this
+      firebase
+        .database()
+        .ref('/ContractStatus/' + self.userusername + ',' + appname[i])
+        .once('value')
+        .then(function(snapshot) {
+          if (snapshot.val() == null) {
+            console.log(appname[i])
+            self.appnameforarray.push(appname[i])
+          }
+        })
+    },
     onOpen: function() {},
     onClose: function(type) {}
   },
   created: function() {
     var self = this
+
     firebase.auth().onAuthStateChanged(function(user) {
       if (user == null) {
         location.href = '#/signup'
@@ -190,11 +215,12 @@ export default {
           .ref('/UID/' + user.uid)
           .once('value')
           .then(function(snapshot) {
-            if (snapshot.val() != null) {
-              self.appnameforarray = snapshot
-                .val()
-                .appname.replace(/\|/g, ',')
-                .split(',')
+            appname = snapshot
+              .val()
+              .appname.replace(/\|/g, ',')
+              .split(',')
+            for (var i = 0; i < appname.length; i++) {
+              self.doubleCheck(i)
             }
           })
       }
